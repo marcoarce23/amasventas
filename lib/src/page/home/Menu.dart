@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:amasventas/src/crosscutting/Preference.dart';
 import 'package:amasventas/src/data/entity/EntityFromJson/MenuList.dart';
+import 'package:amasventas/src/page/amasventas/GraficaPage.dart';
 import 'package:amasventas/src/page/amasventas/VentaPage.dart';
 import 'package:amasventas/src/page/amasventas/simuladorVentasPage.dart';
-import 'package:amasventas/src/page/ventas/VentasGastos.dart';
 import 'package:amasventas/src/repository/Repository.dart';
 import 'package:amasventas/src/style/Style.dart';
 import 'package:amasventas/src/widget/drawer/FloatMenuWidget.dart';
@@ -45,7 +45,7 @@ class _MenuPageState extends State<MenuPage> {
 
     // UserApi().apiRol(prefs.nameUser);
     // final size = MediaQuery.of(context).size;
-
+    print('MENUUUUU POSTMMA ${entity.apiUrl}');
     return Scaffold(
       // key: scaffoldKey,
       appBar: appBar('AMASZONAS DIGITAL'),
@@ -128,11 +128,12 @@ class _MenuPageState extends State<MenuPage> {
           ),
         ),
       );
-    } else {
+    }
+    if (entity.modulo == '7000') {
       return InkWell(
         onTap: () => navegation(context,
             SimuladorVentasPage()), // SimuladorVentasPage()), // navegation(context,VentaPage()),
-        // SimuladorVentasPage()),
+        // GraficaPage()),
         child: Container(
           child: Column(
             children: <Widget>[
@@ -148,6 +149,26 @@ class _MenuPageState extends State<MenuPage> {
         ),
       );
     }
-    //Text(entity.nombreEquipo);
+
+    if (entity.modulo == '8000') {
+      return InkWell(
+        onTap: () => navegation(context,
+            GraficaPage()), // SimuladorVentasPage()), // navegation(context,VentaPage()),
+        // GraficaPage()),
+        child: Container(
+          child: Column(
+            children: <Widget>[
+              sizedBox(0, 7.0),
+              showInformationMenu(
+                context,
+                entity.descripcion,
+                'Puedes ingresar a la siguiente opción',
+                entity.valorCaracter,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }

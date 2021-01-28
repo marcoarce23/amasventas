@@ -1,4 +1,5 @@
 import 'package:amasventas/src/crosscutting/Const.dart';
+import 'package:amasventas/src/page/amasventas/GraficaPage.dart';
 import 'package:amasventas/src/page/faq/FaqPage.dart';
 import 'package:amasventas/src/page/general/ViewPage.dart';
 import 'package:amasventas/src/page/home/HomePage.dart';
@@ -25,14 +26,13 @@ Widget boomMenu(BuildContext context) {
     overlayOpacity: 0.7,
     children: [
       MenuItem(
-        child:
-            Icon(Icons.supervised_user_circle, color: Colors.orange, size: 45),
-        title: "Mi Perfil",
+        child: Icon(Icons.bar_chart_outlined, color: Colors.orange, size: 45),
+        title: "Reporte Semestral",
         titleColor: AppTheme.themeBlackBlack,
-        subtitle: "Revisa tu perfil y actualiza tus datos.",
+        subtitle: "Revisa el Reporte Semestral.",
         subTitleColor: AppTheme.themeBlackBlack,
         backgroundColor: AppTheme.themeWhite,
-        onTap: () => navegation(context, PersonalListPage()),
+        onTap: () => navegation(context, GraficaPage()), //PersonalListPage()),
       ),
       MenuItem(
         child: FaIcon(FontAwesomeIcons.facebook, size: 35, color: Colors.blue),
