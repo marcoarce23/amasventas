@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-Future messageResponse(
+Future responseMessageService(
     Future response, GlobalKey<ScaffoldState> scaffold) async {
   await response.then((result) {
-    print(result["typeMessage"].toString());
-    switch (result["typeMessage"].toString()) {
+    print(result["tipo_mensaje"].toString());
+    switch (result["tipo_mensaje"].toString()) {
       case "0":
         final snackbar = SnackBar(
           backgroundColor: Colors.green,
-          content: Text(result["message"].toString()),
+          content: Text(result["mensaje"].toString()),
           duration: Duration(milliseconds: 1500),
         );
         scaffold.currentState.showSnackBar(snackbar);
@@ -16,7 +16,7 @@ Future messageResponse(
       case "1":
         final snackbar = SnackBar(
           backgroundColor: Colors.black,
-          content: Text(result["message"].toString()),
+          content: Text(result["mensaje"].toString()),
           duration: Duration(milliseconds: 1500),
         );
         scaffold.currentState.showSnackBar(snackbar);
@@ -24,7 +24,7 @@ Future messageResponse(
       case "2":
         final snackbar = SnackBar(
           backgroundColor: Colors.yellowAccent,
-          content: Text(result["message"].toString(),
+          content: Text(result["mensaje"].toString(),
               style: TextStyle(
                 color: Colors.black,
               )),
@@ -35,7 +35,7 @@ Future messageResponse(
       default:
         final snackbar = SnackBar(
           backgroundColor: Colors.red,
-          content: Text(result["message"].toString()),
+          content: Text(result["mensaje"].toString()),
           duration: Duration(milliseconds: 1500),
         );
         scaffold.currentState.showSnackBar(snackbar);

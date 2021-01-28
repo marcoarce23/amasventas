@@ -6,16 +6,18 @@ import 'package:amasventas/src/widget/gfWidget/GfWidget.dart';
 
 AppBar appBar(String title) {
   return AppBar(
-    backgroundColor: AppTheme.themeDefault,
+    backgroundColor: AppTheme.themeGreen,
     //toolbarOpacity: 0.7,
-    iconTheme: IconThemeData(color: AppTheme.themeWhite, size: 16),
-    elevation: 2.0,
-    title: Text(title, style: kTitleAppBar),
+    // iconTheme: IconThemeData(color: AppTheme.themeWhite, size: 16),
+    elevation: 5.0,
+    title: Text(title.toUpperCase(), style: kTitleAppBar),
     actions: <Widget>[
-      avatarCircle(IMAGE_DEFAULT, 35.0),
+      //  DrawerMenu(),
+      avatarCircle(IMAGE_LOGON, 35.0),
+
       //  FaIcon(
       //     FontAwesomeIcons.edit,
-      //     color: AppTheme.themePurple,
+      //     color: AppTheme.themeRed,
       //     size: 23,
       //   ),
     ],

@@ -1,28 +1,27 @@
 import 'package:amasventas/src/data/entity/BaseEntity.dart';
 import 'package:amasventas/src/data/entity/StateEntity.dart';
 
-class LoginModel extends BaseEntity {
+class LogOnModel extends BaseEntity {
   @override
   StateEntity states;
-  String foto;
-  String nombre;
-  String correo;
-  String imei;
-  String token;
+  String usuario;
+  String contrasenia;
 
-  LoginModel(
-      {this.states = StateEntity.None,
-      this.foto,
-      this.nombre,
-      this.correo,
-      this.imei,
-      this.token});
+  LogOnModel({this.states = StateEntity.None, this.usuario, this.contrasenia});
 
-  Map<String, dynamic> toJson() => {
-        "foto": foto,
-        "nombre": nombre,
-        "correo": correo,
-        "imei": imei,
-        "token": token,
-      };
+  Map<String, dynamic> toJson() =>
+      {"usuario": usuario, "password": contrasenia};
+}
+
+class LogOnADModel extends BaseEntity {
+  @override
+  StateEntity states;
+  String usuario;
+  String contrasenia;
+
+  LogOnADModel(
+      {this.states = StateEntity.None, this.usuario, this.contrasenia});
+
+  Map<String, dynamic> toJson() =>
+      {"usuario": usuario, "contrasenia": contrasenia};
 }

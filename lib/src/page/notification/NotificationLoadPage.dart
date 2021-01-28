@@ -1,11 +1,12 @@
 import 'dart:io';
-
+import 'package:amasventas/src/crosscutting/StatusCode.dart';
+import 'package:amasventas/src/page/home/HomePage.dart';
+import 'package:amasventas/src/page/notification/NotificationPage.dart';
+import 'package:amasventas/src/repository/Repository.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/shape/gf_button_shape.dart';
-import 'package:amasventas/src/bloc/NotificationBloc.dart';
-import 'package:amasventas/src/crosscutting/StatusCode.dart';
 import 'package:amasventas/src/data/entity/EntityMap/NotificationModel.dart';
 import 'package:amasventas/src/data/entity/StateEntity.dart';
 import 'package:amasventas/src/theme/Theme.dart';
@@ -14,7 +15,6 @@ import 'package:amasventas/src/widget/image/ImageWidget.dart';
 import 'package:amasventas/src/crosscutting/Preference.dart';
 import 'package:amasventas/src/crosscutting/Const.dart';
 import 'package:amasventas/src/page/home/CircularMenuPage.dart';
-import 'package:amasventas/src/page/home/HomePage.dart';
 import 'package:amasventas/src/style/Style.dart';
 import 'package:amasventas/src/widget/appBar/AppBarWidget.dart';
 import 'package:amasventas/src/widget/drawer/DrawerWidget.dart';
@@ -31,7 +31,7 @@ class NotificationAllPage extends StatefulWidget {
 class _NotificationAllPageState extends State<NotificationAllPage> {
   int page = 0;
   final prefs = new Preferense();
-  final List<Widget> optionPage = [];
+  final List<Widget> optionPage = [NotificationLoadPage(), NotificationPage()];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -48,32 +48,23 @@ class _NotificationAllPageState extends State<NotificationAllPage> {
 
   @override
   Widget build(BuildContext context) {
-    // return MultiProvider(
-    //   providers: [
-    //     ChangeNotifierProvider(builder: (_) => new NotificationService()),
-    //   ],
-    //   child:
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
         elevation: 21.0,
-        backgroundColor: AppTheme.themeDefault,
+        backgroundColor: AppTheme.themeGreen,
         items: [
           BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.bell,
-                size: 25,
-              ),
-              title: Text('Notificaciones')),
+              icon: FaIcon(FontAwesomeIcons.newspaper,
+                  size: 25, color: Colors.white),
+              title: Text('Nuevo')),
           BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.listAlt,
-                size: 25,
-              ),
-              title: Text('Listado Notificación')),
+              icon:
+                  FaIcon(FontAwesomeIcons.bell, size: 25, color: Colors.white),
+              title: Text('Notificaciones')),
         ],
         currentIndex: page,
         unselectedItemColor: AppTheme.themeWhite,
-        selectedItemColor: AppTheme.themePurple,
+        selectedItemColor: AppTheme.themeBlackBlack,
         onTap: _onItemTapped,
       ),
       body: optionPage[page],
@@ -97,8 +88,9 @@ class _NotificationLoadPageState extends State<NotificationLoadPage> {
   final controllerDetalle = TextEditingController();
 
 //DEFINICION DE BLOC Y MODEL
-  NotificationBloc entityBloc;
   NotificacionModel entity = new NotificacionModel();
+  // gets.NotificacionModel entityGet = new gets.NotificacionModel();
+
   final prefs = new Preferense();
 
   //DEFINICION DE VARIABLES
@@ -108,13 +100,24 @@ class _NotificationLoadPageState extends State<NotificationLoadPage> {
   @override
   void initState() {
     super.initState();
-    entityBloc = new NotificationBloc();
   }
 
   final GlobalKey<FabCircularMenuState> fabKey = GlobalKey();
-//sssss
+
   @override
   Widget build(BuildContext context) {
+    entity.states = StateEntity.Insert;
+    // final gets.NotificacionModel entityModelGet =
+    //     ModalRoute.of(context).settings.arguments;
+
+    // if (entityModelGet != null) {
+    //   entity.detalle = entityModelGet.detalle;
+    //   entity.titulo = entityModelGet.titulo;
+    //   entity.idNotificacion = entityModelGet.idNotificacion;
+    //   entity.states = StateEntity.Update;
+    //   print(entityModelGet.detalle);
+    // }
+
     return Scaffold(
       key: scaffoldKey,
       appBar: appBar('NOTIFICACIONES'),
@@ -122,36 +125,30 @@ class _NotificationLoadPageState extends State<NotificationLoadPage> {
       body: Stack(
         children: <Widget>[
           background(context, 'IMAGE_LOGO'),
-          //  showPictureOval(photo, image, 130.0),
           _form(context),
         ],
       ),
-      floatingActionButton: floatButtonImage(AppTheme.themeDefault, context,
-          FaIcon(FontAwesomeIcons.futbol), HomePage()),
+      floatingActionButton: floatButton(AppTheme.themeGreen, context,
+          FaIcon(FontAwesomeIcons.plane), HomePage()),
     );
   }
 
   Widget _form(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    entity.states = StateEntity.Insert;
-    entity.apiUrl = API + '/api/Notificacion';
 
     return SingleChildScrollView(
       child: Form(
         key: formKey,
         child: Container(
-          //  color: Colors.black87,
-
           child: Column(
             children: <Widget>[
-              //
               sizedBox(0.0, 8.0),
               showInformationBasic(
                 context,
-                'GESTIONA LAS NOTIFICACIONESa',
+                'GESTIONA LAS NOTIFICACIONES',
                 'En la pantalla podrás crear y modficar las notificaciones.\nLos campos con (*) son obligatorios.',
               ),
-              sizedBox(0.0, 5.0),
+              sizedBox(0.0, 10.0),
               Container(
                 width: size.width * 0.94,
                 margin: EdgeInsets.symmetric(vertical: 0.0),
@@ -170,14 +167,14 @@ class _NotificationLoadPageState extends State<NotificationLoadPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        showPictureOval(photo, IMAGE_DEFAULT, 0.0),
-        dividerBlack(),
+        showPictureOval(photo, IMAGE_LOGON, 0.0),
+        dividerGreen(),
         _text(
             controllerTitulo,
-            'entity.titulo',
+            entity.titulo,
             '(*) Notificación',
             100,
-            3,
+            2,
             'Ingrese la notificación',
             true,
             FaIcon(FontAwesomeIcons.newspaper, color: AppTheme.themeDefault),
@@ -187,10 +184,10 @@ class _NotificationLoadPageState extends State<NotificationLoadPage> {
 
         _text(
             controllerDetalle,
-            'entity.detalle',
+            entity.detalle,
             '(*) Detalle de la notificación',
             140,
-            4,
+            3,
             'Ingrese Detalle de la notificación',
             true,
             FaIcon(FontAwesomeIcons.wpforms, color: AppTheme.themeDefault),
@@ -256,7 +253,7 @@ class _NotificationLoadPageState extends State<NotificationLoadPage> {
       text: text,
       textStyle: TextStyle(fontSize: fontSize),
       textColor: AppTheme.themeWhite,
-      color: AppTheme.themeDefault,
+      color: AppTheme.themeGreen,
       icon: FaIcon(FontAwesomeIcons.checkCircle, color: AppTheme.themeWhite),
       shape: GFButtonShape.pills,
       onPressed: (_save) ? null : _submit,
@@ -269,30 +266,24 @@ class _NotificationLoadPageState extends State<NotificationLoadPage> {
 
     setState(() => _save = true);
     loadingEntity();
-    executeCUD(entityBloc, entity);
+    executeCUD(entity);
     setState(() => _save = false);
   }
 
   void loadingEntity() {
-    print('EL RESULAAAAA');
+    entity.apiUrl = "http://virtualmatch.neuronatexnology.com/api/Notificacion";
     entity.idNotificacion =
         (entity.states == StateEntity.Insert) ? 0 : entity.idNotificacion;
     entity.idOrganizacion = 1;
     entity.titulo = controllerTitulo.text;
     entity.detalle = controllerDetalle.text;
-    entity.usuarioAuditoria = 'prefs.email';
+    entity.usuarioAuditoria = 'amasventas';
     entity.foto = IMAGE_LOGO;
-    entity.fechaAuditoria = '2020-08-10 08:25';
-    print('EL RESULAAAAA ${entity.titulo}');
-    print('EL RESULAAAAA ${entity.detalle}');
   }
 
-  void executeCUD(NotificationBloc entityBloc, NotificacionModel entity) async {
-    print('EL RESULAAccccA');
-
+  void executeCUD(NotificacionModel entity) async {
     try {
-      await entityBloc.add(entity).then((result) {
-        print('EL RESULTTTTT: ${result["tipo_mensaje"]}');
+      await new Repository().add(entity).then((result) {
         if (result["tipo_mensaje"] == '0')
           showSnackbar(STATUS_OK, scaffoldKey);
         else

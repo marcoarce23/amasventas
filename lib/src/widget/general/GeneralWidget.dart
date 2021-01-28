@@ -9,6 +9,27 @@ import 'package:amasventas/src/widget/general/OpenWebWidget.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:amasventas/src/widget/gfWidget/GfWidget.dart';
 
+// Widget showInformationBasicIcon(
+//     BuildContext context, String title, String subTitle, FaIcon icon,) {
+//   final size = MediaQuery.of(context).size;
+//   return Container(
+//     width: size.width * 0.95,
+//     margin: EdgeInsets.symmetric(vertical: 0.0),
+//     decoration: boxDecoration(),
+//     child: Column(
+//       children: <Widget>[
+//         gfListTile(
+//             Text(title, style: kTitleStyleBlack),
+//          null,
+//             null,
+//             null,
+//             avatarCircle(icon, 35),
+//             EdgeInsets.all(5.0),
+//             EdgeInsets.all(3.0)),
+//       ],
+//     ),
+//   );
+
 Widget showInformationBasic(
     BuildContext context, String title, String subTitle) {
   final size = MediaQuery.of(context).size;
@@ -19,11 +40,34 @@ Widget showInformationBasic(
     child: Column(
       children: <Widget>[
         gfListTile(
-            Text(title, style: kSigsTitleStyle),
-            Text(subTitle, style: kSigssTitleStyle),
+            Text(title, style: kTitleStyleBlack),
+            Text(subTitle, style: kSubtitleStyleBlack),
             null,
             null,
-            avatarCircle(IMAGE_LOGOB, 35),
+            avatarCircle(IMAGE_LOGON, 35),
+            EdgeInsets.all(5.0),
+            EdgeInsets.all(3.0)),
+      ],
+    ),
+  );
+  //Text(entity.nombreEquipo);
+}
+
+Widget showInformationMenu(
+    BuildContext context, String title, String subTitle, String logo) {
+  final size = MediaQuery.of(context).size;
+  return Container(
+    width: size.width * 0.95,
+    margin: EdgeInsets.symmetric(vertical: 0.0),
+    decoration: boxDecorationMenus(),
+    child: Column(
+      children: <Widget>[
+        gfListTile(
+            Text(title, style: kTitleStyleBlack),
+            Text(subTitle, style: kSubtitleStyleBlack),
+            null,
+            null,
+            avatarCircle(logo, 35),
             EdgeInsets.all(5.0),
             EdgeInsets.all(3.0)),
       ],
@@ -49,13 +93,13 @@ Widget showInformation(BuildContext context, String title, String subTitle,
                 Text(
                   subSubTitle,
                   style: TextStyle(
-                      color: AppTheme.themePurple,
+                      color: AppTheme.themeRed,
                       textBaseline: TextBaseline.ideographic,
                       //   decoration: TextDecoration.underline,
                       fontSize: 15.0),
                 ),
                 InkWell(
-                  child: avatarCircle(IMAGE_SOROJCHI, 20),
+                  child: avatarCircle(IMAGE_SCREEN1, 20),
                   onTap: () =>
                       navegation(context, ViewPage(title: titlePage, url: url)),
                 ),
@@ -83,7 +127,7 @@ Widget copyRigth() {
           Text(amasventas,
               style: TextStyle(
                   color: AppTheme.themeWhite)), //style: kCopyRigthStyle),
-          avatarCircle(IMAGE_DEFAULT, 15),
+          avatarCircle(IMAGE_LOGON, 10),
         ],
       ),
     ],
@@ -95,12 +139,12 @@ Widget copyRigthBlack() {
     mainAxisAlignment: MainAxisAlignment.start,
     children: <Widget>[
       sizedBox(0, 5.0),
-      dividerBlack(),
+      dividerGreen(),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(amasventas, style: TextStyle(color: AppTheme.themeDefault)),
-          avatarCircle(IMAGE_DEFAULT, 15),
+          Text(amasventas, style: TextStyle(color: AppTheme.themeBlackBlack)),
+          FaIcon(FontAwesomeIcons.plane, color: AppTheme.themeGreen),
         ],
       ),
     ],
@@ -116,10 +160,19 @@ Divider divider() {
   );
 }
 
-Divider dividerBlack() {
+Divider dividerGreen() {
   return Divider(
     thickness: 2.0,
     color: AppTheme.themeDefault,
+    endIndent: 20.0,
+    indent: 20.0,
+  );
+}
+
+Divider dividerBlue() {
+  return Divider(
+    thickness: 2.0,
+    color: Colors.blue,
     endIndent: 20.0,
     indent: 20.0,
   );
@@ -233,23 +286,39 @@ Widget background(BuildContext context, String imagen) {
         // Color.fromRGBO(93, 93, 93, 3.0),
         // Color.fromRGBO(48, 50, 48, 1.0),
         // Color.fromRGBO(22, 23, 22, 1.0),
-        AppTheme.themeDefault, AppTheme.themeDefault, AppTheme.themeDefault,
-        AppTheme.themeDefault,
+        Colors.white60, Colors.white60, Colors.white60, Colors.white60,
+        // AppTheme.themeWhite, AppTheme.themeWhite, AppTheme.themeWhite,
+        // AppTheme.themeWhite,
       ],
     )),
   );
 }
 
+BoxDecoration containerFileds1(Color color) {
+  // return boxDecorationList();
+  return BoxDecoration(
+      color: color,
+      // gradient: boxDecorationList(),
+      borderRadius: BorderRadius.circular(4.0),
+      boxShadow: <BoxShadow>[
+        BoxShadow(
+            color: AppTheme.themeBlackGrey,
+            blurRadius: 5.0,
+            offset: Offset(1.0, 1.0),
+            spreadRadius: 1.0)
+      ]);
+}
+
 BoxDecoration containerFileds() {
   // return boxDecorationList();
   return BoxDecoration(
-      color: Colors.white,
+      color: AppTheme.themeWhite,
       // gradient: boxDecorationList(),
       borderRadius: BorderRadius.circular(10.0),
       boxShadow: <BoxShadow>[
         BoxShadow(
-            color: AppTheme.themePurple,
-            blurRadius: 7.0,
+            color: AppTheme.themeBlackGrey,
+            blurRadius: 5.0,
             offset: Offset(1.0, 1.0),
             spreadRadius: 1.0)
       ]);
@@ -261,7 +330,7 @@ BoxDecoration containerImage() {
       borderRadius: BorderRadius.circular(8.0),
       boxShadow: <BoxShadow>[
         BoxShadow(
-            color: AppTheme.themePurple,
+            color: AppTheme.themeRed,
             blurRadius: 15.0,
             offset: Offset(2.0, 1.0),
             spreadRadius: 2.0)
@@ -270,13 +339,13 @@ BoxDecoration containerImage() {
 
 boxDecoration() {
   return BoxDecoration(
-      borderRadius: BorderRadius.circular(5.0),
+      borderRadius: BorderRadius.circular(3.0),
       boxShadow: <BoxShadow>[
         BoxShadow(
-            color: Colors.black,
-            blurRadius: 7.0,
-            offset: Offset(2.0, 3.0),
-            spreadRadius: 4.0)
+            color: AppTheme.themeGrey,
+            blurRadius: 2.0,
+            offset: Offset(1.0, 2.0),
+            spreadRadius: 2.5)
       ],
       gradient: LinearGradient(
         begin: Alignment.topCenter,
@@ -288,19 +357,69 @@ boxDecoration() {
           // Color.fromRGBO(48, 50, 48, 1.0),
           // Color.fromRGBO(22, 23, 22, 1.0),
 
+          AppTheme.themeWhite, AppTheme.themeWhite, AppTheme.themeWhite,
+          AppTheme.themeWhite,
+        ],
+      ));
+}
+
+boxDecorationColor(Color color) {
+  return BoxDecoration(
+      borderRadius: BorderRadius.circular(3.0),
+      boxShadow: <BoxShadow>[
+        BoxShadow(
+            color: AppTheme.themeGrey,
+            blurRadius: 2.0,
+            offset: Offset(1.0, 2.0),
+            spreadRadius: 2.5)
+      ],
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomRight,
+        stops: [0.1, 0.4, 0.7, 0.9],
+        colors: [
           // Color.fromRGBO(113, 113, 113, 1.0),
           // Color.fromRGBO(93, 93, 93, 3.0),
           // Color.fromRGBO(48, 50, 48, 1.0),
           // Color.fromRGBO(22, 23, 22, 1.0),
 
-          Colors.white, Colors.white, Colors.white, Colors.white,
+          color, color, color, color
+        ],
+      ));
+}
+
+boxDecorationMenus() {
+  return BoxDecoration(
+      borderRadius: BorderRadius.circular(5.0),
+      boxShadow: <BoxShadow>[
+        BoxShadow(
+            color: AppTheme.themeGrey,
+            blurRadius: 2.0,
+            offset: Offset(1.0, 2.0),
+            spreadRadius: 2.5)
+      ],
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomRight,
+        stops: [0.1, 0.4, 0.7, 0.9],
+        colors: [
+          // Color.fromRGBO(113, 113, 113, 1.0),
+          // Color.fromRGBO(93, 93, 93, 3.0),
+          // Color.fromRGBO(48, 50, 48, 1.0),
+          // Color.fromRGBO(22, 23, 22, 1.0),
+
+          AppTheme.themeWhite, AppTheme.themeWhite, AppTheme.themeWhite,
+          AppTheme.themeWhite,
         ],
       ));
 }
 
 boxDecorationMenu(BuildContext context, String imagen) {
   return BoxDecoration(
-    // image: DecorationImage(image: ImageProvider<String>imagen) ,
+    image: new DecorationImage(
+      image: new NetworkImage(IMAGE_LOGON),
+      fit: BoxFit.cover,
+    ),
     color: AppTheme.themeDefault,
   );
   //     gradient: LinearGradient(
@@ -372,17 +491,25 @@ Widget floatButtonImage(
       navegation(context, page);
     },
     elevation: 2.0,
-    child: avatarCircle(IMAGE_LOGOB, 34.0),
+    child: avatarCircle(IMAGE_LOGO, 34.0),
     backgroundColor: color,
   );
 }
 
 showSnackbar(String message, GlobalKey<ScaffoldState> scaffoldKey) {
   final snackbar = SnackBar(
-    backgroundColor: Colors.pinkAccent,
+    backgroundColor: AppTheme.themeRed,
     content: Text(message),
     duration: Duration(milliseconds: 2500),
   );
 
   scaffoldKey.currentState.showSnackBar(snackbar);
+}
+
+showSnackbarWithOutKey(String message, BuildContext context) {
+  return Scaffold.of(context).showSnackBar(SnackBar(
+    backgroundColor: AppTheme.themeGreen,
+    content: Text(message),
+    duration: Duration(milliseconds: 2500),
+  ));
 }

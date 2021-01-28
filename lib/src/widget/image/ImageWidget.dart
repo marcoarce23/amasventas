@@ -33,11 +33,10 @@ Widget showPictureRectangle(File file, String picture, double heigth) {
 
 Widget showPictureOval(File file, String image, double heigth) {
   Container(
-    width: 60.0,
-    height: 60.0,
+    width: 45.0,
+    height: 45.0,
     decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100.0),
-        color: Color.fromRGBO(22, 23, 22, 0.4)),
+        borderRadius: BorderRadius.circular(100.0), color: AppTheme.themeRed),
   );
 
   return Stack(
@@ -53,13 +52,13 @@ Widget showPictureOval(File file, String image, double heigth) {
           children: <Widget>[
             Align(
               child: RadialProgress(
-                progressColor: Colors.purple,
+                progressColor:AppTheme.themeGreen,
                 progressBackgroundColor: AppTheme.themeDefault,
                 width: 4,
                 goalCompleted: 0.85,
                 child: Container(
                   child: ImageOvalNetwork(
-                      imageNetworkUrl: image, sizeImage: Size.fromWidth(90)),
+                      imageNetworkUrl: image, sizeImage: Size.fromWidth(70)),
                 ),
               ),
             ),
@@ -92,7 +91,7 @@ Widget showPictureOvalTop(File file, String image, double heigth, double top) {
           children: <Widget>[
             Align(
               child: RadialProgress(
-                progressColor: Colors.purple,
+                progressColor: AppTheme.themeGreen,
                 progressBackgroundColor: AppTheme.themeDefault,
                 width: 4,
                 goalCompleted: 0.85,

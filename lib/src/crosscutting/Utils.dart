@@ -1,8 +1,27 @@
-import 'package:flutter/services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import 'package:flutter/material.dart';
 
 final String userName = null;
+
+String ejecutadoPorcent(double ejecutado, double programado) {
+  var valor = (ejecutado / programado) * 100;
+  return valor.round().toString() + '%';
+}
+
+double ejecutado(double ejecutado, double programado) {
+  return ejecutado / programado;
+}
+
+//showPictureOval(ejecutadoPorcent(entity.anualEjecutado,entity.anualProgramado), 25, colorPorcent(entity.anualEjecutado,entity.anualProgramado), ejecutado(entity.anualEjecutado,entity.anualProgramado)),
+Color colorPorcent(double ejecutado, double programado) {
+  Color color = Colors.red;
+  var valor = ejecutado / programado;
+  if (valor >= 0 && valor <= 0.6) return Colors.green;
+  if (valor > 0.6 && valor <= 0.8) return Colors.yellow;
+  if (valor > 0.8 && valor <= 1) return Colors.red;
+
+  if (valor >= 1) return Colors.black;
+  return color;
+}
 
 String obtenerMunicipio(int idMunicipio) {
   String _departamento = 'Cochabamba';
@@ -49,18 +68,18 @@ int daysInMonth(int month) {
   return lastDayDateTime.day;
 }
 
-Future<LatLng> getLocation() async {
-  final Location location = Location();
-  LocationData location1;
-  LocationData locationResult;
-  try {
-    locationResult = await location.getLocation();
-  } on PlatformException catch (e) {
-    if (e.code == 'PERMISSION DENIED')
-      print('Permission denied');
-    else if (e.code == 'PERMISSION DENIED_NEVER_ASK')
-      print('Permission denied enable ask');
-  }
-  location1 = locationResult;
-  return LatLng(location1.latitude, location1.longitude);
-}
+// Future<LatLng> getLocation() async {
+//   final Location location = Location();
+//   LocationData location1;
+//   LocationData locationResult;
+//   try {
+//     locationResult = await location.getLocation();
+//   } on PlatformException catch (e) {
+//     if (e.code == 'PERMISSION DENIED')
+//       print('Permission denied');
+//     else if (e.code == 'PERMISSION DENIED_NEVER_ASK')
+//       print('Permission denied enable ask');
+//   }
+//   location1 = locationResult;
+//   return LatLng(location1.latitude, location1.longitude);
+// }

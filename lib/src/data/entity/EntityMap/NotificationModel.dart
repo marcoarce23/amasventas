@@ -10,7 +10,6 @@ class NotificacionModel extends BaseEntity {
   String detalle;
   String foto;
   String usuarioAuditoria;
-  String fechaAuditoria;
 
   NotificacionModel(
       {this.states = StateEntity.None,
@@ -20,7 +19,7 @@ class NotificacionModel extends BaseEntity {
       this.detalle,
       this.foto,
       this.usuarioAuditoria,
-      this.fechaAuditoria});
+   });
 
   Map<String, dynamic> toJson() => {
         "idNotificacion": idNotificacion,
@@ -29,6 +28,6 @@ class NotificacionModel extends BaseEntity {
         "detalle": detalle,
         "foto": foto,
         "usuarioAuditoria": usuarioAuditoria,
-        "fechaAuditoria": fechaAuditoria,
+   
       };
 }

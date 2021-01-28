@@ -17,6 +17,15 @@ class Preferense {
   }
   // GET y SET del Genero
 
+ get valor {
+    return _prefs.getString('valor') ?? 'AMP';
+  }
+
+  set valor(String value) {
+    _prefs.setString('valor', value);
+  }
+
+
   get imei {
     return _prefs.getString('imei') ?? '-1';
   }

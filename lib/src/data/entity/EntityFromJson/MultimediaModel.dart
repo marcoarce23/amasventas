@@ -1,6 +1,6 @@
 import 'package:amasventas/src/data/entity/BaseEntity.dart';
 
-class MultimediaModel extends BaseEntity {
+class MultimediaList extends BaseEntity {
   int idMultimedia;
   int idOrganizacion;
   int idaCategoria;
@@ -11,7 +11,7 @@ class MultimediaModel extends BaseEntity {
   String fechafin;
   String foto;
 
-  MultimediaModel(
+  MultimediaList(
       {this.idMultimedia,
       this.idOrganizacion,
       this.titulo,
@@ -22,7 +22,7 @@ class MultimediaModel extends BaseEntity {
       this.fechafin,
       this.foto});
 
-  fromJson(Map<String, dynamic> json) => new MultimediaModel(
+  fromJson(Map<String, dynamic> json) => new MultimediaList(
         idMultimedia: json["idMultimedia"],
         idOrganizacion: json["idOrganizacion"],
         titulo: json["titulo"],

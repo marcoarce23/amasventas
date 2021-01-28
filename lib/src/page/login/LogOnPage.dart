@@ -1,24 +1,26 @@
+import 'package:amasventas/src/crosscutting/Preference.dart';
+import 'package:amasventas/src/crosscutting/StatusCode.dart';
+import 'package:amasventas/src/data/entity/EntityMap/LogOnModel.dart';
+import 'package:amasventas/src/data/entity/StateEntity.dart';
+import 'package:amasventas/src/page/amasventas/SimuladorVentasPage.dart';
+import 'package:amasventas/src/page/intro/IntroPage.dart';
+import 'package:amasventas/src/page/login/ChangePasswordPage.dart';
+import 'package:amasventas/src/page/login/RegisterUserPage.dart';
+import 'package:amasventas/src/repository/Repository.dart';
+import 'package:amasventas/src/repository/route/LogOnApi.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:getwidget/components/button/gf_button.dart';
-import 'package:getwidget/shape/gf_button_shape.dart';
-import 'package:imei_plugin/imei_plugin.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:amasventas/src/crosscutting/Preference.dart';
-import 'package:amasventas/src/data/entity/EntityFromJson/LogOnModel.dart';
-import 'package:amasventas/src/data/entity/EntityMap/LogOnModel.dart' as model;
+import 'package:getwidget/getwidget.dart';
 import 'package:amasventas/src/page/general/ViewPage.dart';
-import 'package:amasventas/src/page/intro/IntroPage.dart';
 import 'package:amasventas/src/page/login/LoginClipperPage.dart';
 import 'package:amasventas/src/theme/Theme.dart';
-import 'package:amasventas/src/widget/general/CallWidget.dart';
 import 'package:amasventas/src/widget/general/GeneralWidget.dart';
-import 'package:amasventas/src/widget/general/SenWidget.dart';
-import 'package:page_transition/page_transition.dart';
 import 'package:amasventas/src/crosscutting/Const.dart';
-import 'package:amasventas/src/widget/gfWidget/GfWidget.dart';
 import 'package:amasventas/src/crosscutting/Validator.dart' as validator;
+import 'package:local_auth/local_auth.dart';
+import 'package:shimmer/shimmer.dart';
 
 class LogOnPage extends StatefulWidget {
   @override
@@ -26,105 +28,176 @@ class LogOnPage extends StatefulWidget {
 }
 
 class _LogOnPageState extends State<LogOnPage> {
-  // LoginService loginService1;
-
-  // LoginService loginService = new LoginService();
-  LoginModel loginModel = new LoginModel();
-  model.LoginModel entity = new model.LoginModel();
-
-  final formKey = GlobalKey<FormState>();
+  final controllerLogin = TextEditingController();
+  final controllerPass = TextEditingController();
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _save = false;
+
+  LogOnModel entity = new LogOnModel();
+  LogOnADModel entityAD = new LogOnADModel();
   final prefs = new Preferense();
-  final controllerUsuario = TextEditingController();
-  final controllerPassword = TextEditingController();
 
-  //LoginSigIn entity = new LoginSigIn();
-  String _platformImei = 'Unknown';
-  String uniqueId = "Unknown";
-  String result2;
-  var result;
-  var result1;
+  final LocalAuthentication auth = LocalAuthentication();
+  bool _canCheckBiometrics;
+  List<BiometricType> _availableBiometrics;
+  String _authorized = 'No Autorizado';
+  bool _isAuthenticating = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // prefs.lastPage = LoginPage.routeName;
-    initPlatformState();
-  
-  }
-
-  Future<void> initPlatformState() async {
-    String platformImei = 'Failed to get platform version.';
-    String idunique;
-    // Platform messages may fail, so we use a try/catch PlatformException.
+  Future<void> _checkBiometrics() async {
+    bool canCheckBiometrics;
     try {
-      platformImei =
-          await ImeiPlugin.getImei(shouldShowRequestPermissionRationale: false);
-      idunique = await ImeiPlugin.getId();
-    } catch (exception) {
-      showSnackbar('Se produjo un error. $exception', scaffoldKey);
+      canCheckBiometrics = await auth.canCheckBiometrics;
+    } on PlatformException catch (e) {
+      print(e);
     }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
     if (!mounted) return;
 
     setState(() {
-      _platformImei = platformImei;
-      uniqueId = idunique;
+      _canCheckBiometrics = canCheckBiometrics;
     });
+  }
+
+  Future<void> _getAvailableBiometrics() async {
+    List<BiometricType> availableBiometrics;
+    try {
+      availableBiometrics = await auth.getAvailableBiometrics();
+    } on PlatformException catch (e) {
+      print(e);
+    }
+    if (!mounted) return;
+
+    setState(() {
+      _availableBiometrics = availableBiometrics;
+    });
+  }
+
+  Future<void> _authenticate() async {
+    bool authenticated = false;
+    try {
+      setState(() {
+        _isAuthenticating = true;
+        _authorized = 'Autenticando';
+      });
+      authenticated = await auth.authenticateWithBiometrics(
+          localizedReason: 'Scannea tu huella dactilar para autentificar',
+          useErrorDialogs: true,
+          stickyAuth: true);
+      setState(() {
+        _isAuthenticating = false;
+        _authorized = 'Autorizado';
+      });
+    } on PlatformException catch (e) {
+      print(e);
+    }
+    if (!mounted) return;
+
+    final String message = authenticated ? 'Autorizado' : 'No Autorizado';
+    setState(() {
+      _authorized = message;
+      if (_authorized == 'Autorizado')
+        navegation(context, IntroPage());
+      else
+        return;
+    });
+  }
+
+  void _cancelAuthentication() {
+    auth.stopAuthentication();
   }
 
   @override
   Widget build(BuildContext context) {
-    // loginService1 = Provider.of<LoginService>(context);
-
     Size size = MediaQuery.of(context).size;
+
+    entityAD.apiUrl = LogOnApi().apiAD();
+
+    entityAD.states = StateEntity.Insert;
+
+    entity.apiUrl = LogOnApi().api();
+    entity.states = StateEntity.Insert;
 
     return Scaffold(
       key: scaffoldKey,
       body: SingleChildScrollView(
-        child: Container(
-          child: Stack(
-            children: [
-              Container(),
-              Image.asset(
-                "assets/image/babycare1.jpg",
+        child: Stack(
+          children: [
+            Container(),
+            // Image(image: AssetImage("assets/image/babycare1.jpg")),
+
+            //     Image.asset(
+            ////        "assets/image/babycare1.jpg",
+            // fit: BoxFit.cover,
+            // height: size.height * 0.70,
+            // width: size.width,
+            //    ),
+            Center(
+              child: Image(
+                image: NetworkImage(IMAGE_LOGON),
                 fit: BoxFit.cover,
-                height: size.height * 0.99,
+                height: size.height,
                 width: size.width,
               ),
-              Positioned(
-                bottom: 0,
-                child: ClipPath(
-                  clipper: LoginCustomClipper(),
-                  child: _buttonsSignUp(size, context),
-                ),
-              )
-            ],
-          ),
+            ),
+            Positioned(
+              bottom: 0,
+              child: ClipPath(
+                clipper: LoginCustomClipper(),
+                child: _buttonsSignUp(size, context),
+              ),
+            )
+          ],
         ),
+      ),
+    );
+  }
+
+  _crearUsuario(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Shimmer.fromColors(
+            baseColor: AppTheme.themeBlackBlack,
+            highlightColor: AppTheme.themeGreen,
+            child: FlatButton(
+              child: Text(
+                'Registrate aquí.',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () => navegation(
+                context,
+                RegisterUserPage(),
+              ),
+            ),
+          ),
+          FaIcon(
+            FontAwesomeIcons.edit,
+            color: AppTheme.themeBlackBlack,
+            size: 18,
+          ),
+        ],
       ),
     );
   }
 
   Container _buttonsSignUp(Size size, BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 0),
-      //  height: size.height * 0.5,
+      padding: EdgeInsets.only(top: 55),
+      height: size.height * 0.52,
       width: size.width,
       color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          /* 
           Shimmer.fromColors(
             baseColor: AppTheme.themeDefault,
-            highlightColor: AppTheme.themePurple,
+            highlightColor: AppTheme.themeRed,
             child: AutoSizeText(
-              'Bienvenido al amasventas',
-              maxLines: 1,
+              'Somos Amasventas',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 25.0,
@@ -132,66 +205,56 @@ class _LogOnPageState extends State<LogOnPage> {
               ),
             ),
           ),
-          sizedBox(0, 60),
+          _button('Iniciar con tu cuenta', 18.0, 20.0),
+          */
           _text(
-              controllerUsuario,
+              controllerLogin,
               '',
-              '(*) Registre la noticia/evento',
-              100,
-              2,
-              'Ingrese la noticia',
+              '(*) Ingrese su usuario',
+              25,
+              1,
+              'Ingrese su usuario',
               true,
-              FaIcon(FontAwesomeIcons.newspaper, color: AppTheme.themeDefault),
-              AppTheme.themeDefault,
-              AppTheme.themeDefault,
+              FaIcon(FontAwesomeIcons.user, color: AppTheme.themeBlackBlack),
+              AppTheme.themeBlackBlack,
+              AppTheme.themeBlackBlack,
               Colors.red),
           _text(
-              controllerPassword,
+              controllerPass,
               '',
-              '(*) Registre la noticia/evento',
-              100,
-              2,
-              'Ingrese la noticia',
+              '(*) Ingese la contraseña',
+              10,
+              1,
+              'Ingrese la contraseña',
               true,
-              FaIcon(FontAwesomeIcons.newspaper, color: AppTheme.themeDefault),
+              FaIcon(FontAwesomeIcons.key, color: AppTheme.themeBlackBlack),
               AppTheme.themeDefault,
               AppTheme.themeDefault,
-              Colors.red),
-
-          _gmailButton(),
-          //  _button(context, 'amasventas', 18.0, 20.0),
+              AppTheme.themeGreen),
+          _button('Iniciar Sesión', 18.0, 60.0),
+          //    _crearUsuario(context),
           _crearAcciones(context),
-          sizedBox(0.0, 8.0),
-          _egree(context),
           copyRigthBlack(),
+/*
+          Text('El dispositivo tiene para huella?: $_canCheckBiometrics\n'),
+          RaisedButton(
+            child: const Text('Verificar si tiene para huella'),
+            onPressed: _checkBiometrics,
+          ),
+          Text('Biometrico disponible: $_availableBiometrics\n'),
+          RaisedButton(
+            child: const Text('Obtener tipo de verificacion'),
+            onPressed: _getAvailableBiometrics,
+          ),
+          Text('Estado de la verificación: $_authorized\n'),
+          RaisedButton(
+            child: Text(_isAuthenticating ? 'Cancelar' : 'Autentificar'),
+            onPressed:
+                _isAuthenticating ? _cancelAuthentication : _authenticate,
+          )*/
         ],
       ),
     );
-  }
-
-  Future<void> handleSignIn() async {
-    try {
-    
-        _crearInformacion();
-      
-    } catch (error) {
-      // scaffoldKey.currentState
-      //     .showSnackBar('Se produjo un error: ${error.toString()}');
-    }
-  }
-
-  _crearInformacion() {
-    // _googleSignIn.signIn().then((value) {
-    //   prefs.nameUser = currentUser.displayName;
-    //   prefs.email = currentUser.email;
-    //   prefs.avatarImage = currentUser.photoUrl;
-    //   prefs.userId = currentUser.displayName;
-
-    //   print('DDDD. ${prefs.email}');
-
-    //   _submit();
-    // });
-    _submit();
   }
 
   Widget _text(
@@ -207,18 +270,15 @@ class _LogOnPageState extends State<LogOnPage> {
       Color fillColor,
       Color focusColor) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 15.0),
+      padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 35.0),
       child: TextFormField(
         initialValue: initialValue,
         textCapitalization: TextCapitalization.sentences,
-        enableSuggestions: true,
-        maxLength: maxLength,
+        enableSuggestions: false,
         autocorrect: true,
         autovalidate: false,
         maxLines: maxLines,
-        cursorColor: AppTheme.themeDefault,
-        toolbarOptions:
-            ToolbarOptions(copy: true, cut: true, paste: true, selectAll: true),
+        cursorColor: AppTheme.themeGreen,
         keyboardType: TextInputType.text,
         // controller: controller,
         decoration: inputDecoration(
@@ -235,36 +295,96 @@ class _LogOnPageState extends State<LogOnPage> {
     );
   }
 
-  Widget _gmailButton() {
-    return OutlineButton(
-      splashColor: Colors.black,
-      onPressed: handleSignIn,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
-      highlightElevation: 0,
-      borderSide: BorderSide(color: Colors.black),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image(
-                image: AssetImage("assets/general/google_logo.png"),
-                height: 20.0),
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text(
-                'Iniciar sesión',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
+  Widget _button(String text, double fontSize, double edgeInsets) {
+    return GFButton(
+      padding: const EdgeInsets.only(left: 5),
+      elevation: 15.0,
+      text: text,
+      textStyle: TextStyle(fontSize: fontSize),
+      textColor: AppTheme.themeWhite,
+      color: AppTheme.themeGreen,
+      icon: FaIcon(FontAwesomeIcons.checkCircle, color: AppTheme.themeWhite),
+      shape: GFButtonShape.pills,
+      onPressed: (_save) ? null : _submit,
     );
+  }
+/*
+  _submitAD() {
+    entityAD.apiUrl = LogOnApi().apiAD();
+    entityAD.usuario = controllerLogin.text;
+    entityAD.contrasenia = controllerPass.text;
+    return _executeCUDAD(entityAD);
+  }
+  */
+
+  _submit() async {
+    // if (controllerPass.text == '1234') {
+    //   navegation(context, ChangePasswordPage());
+    // }
+    // if (!formKey.currentState.validate()) return;
+    //  formKey.currentState.save();
+    //else {
+    entityAD.apiUrl = LogOnApi().apiAD();
+    entityAD.usuario = controllerLogin.text.toLowerCase();
+    entityAD.contrasenia = controllerPass.text;
+
+    executeCUD(entityAD);
+    // }
+/*
+    if (_submitAD() == '0') {
+      setState(() => _save = true);
+      setState(() => _save = false);
+    } else {
+      setState(() => _save = true);
+      executeCUD(entity);
+      loadingEntity();
+      setState(() => _save = false);
+    }
+    */
+  }
+
+  void loadingEntity() {
+    entityAD.apiUrl = LogOnApi().apiAD();
+    entityAD.usuario = controllerLogin.text.toLowerCase();
+    entityAD.contrasenia = controllerPass.text;
+
+    print('EL RESULAAAAA ${entity.apiUrl}');
+  }
+/*
+  _executeCUDAD(LogOnADModel entity) async {
+    print('EL RESULAAccccA');
+    String _valor = '3';
+
+    Repository().add(entity).then((result) {
+      if (result["tipo_mensaje"] == "0") {
+        print('WWWWWW ${result["tipo_mensaje"].toString()}');
+        _valor = result["tipo_mensaje"].toString();
+      } else
+        showSnackbar(STATUS_ERROR, scaffoldKey);
+    });
+    print('WWWWWW $_valor');
+    return _valor;
+    //  await responseMessageService(response, scaffoldKey);
+  }
+  */
+
+  void executeCUD(LogOnADModel entity) async {
+    print('EL RESULZZZZZZ');
+
+    try {
+      await Repository().add(entity).then((result) {
+        if (result["tipo_mensaje"] == "0") {
+          prefs.nameUser = entity.usuario;
+          // navegation(context, SimuladorVentasPage()); //IntroPage());
+          navegation(context, IntroPage());
+        } else
+          showSnackbar(result["mensaje"], scaffoldKey);
+      });
+    } catch (exception) {
+      showSnackbar('No tiene acceso al sistema', scaffoldKey);
+    }
+
+    //  await responseMessageService(response, scaffoldKey);
   }
 
   Row _crearAcciones(BuildContext context) {
@@ -272,8 +392,8 @@ class _LogOnPageState extends State<LogOnPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           child: RaisedButton(
             color: Colors.blueAccent,
             padding: EdgeInsets.all(0),
@@ -281,7 +401,7 @@ class _LogOnPageState extends State<LogOnPage> {
             onPressed: () => navegation(
                 context,
                 ViewPage(
-                    title: 'FACEBOOK amasventas'.toString(), url: facebook)),
+                    title: 'FACEBOOK AMASZONAS'.toString(), url: facebook)),
             child: Icon(
               FontAwesomeIcons.facebookF,
               color: Colors.white,
@@ -291,8 +411,8 @@ class _LogOnPageState extends State<LogOnPage> {
         ),
         sizedBox(10, 0),
         SizedBox(
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           child: RaisedButton(
             color: Colors.red,
             padding: EdgeInsets.all(0),
@@ -300,7 +420,7 @@ class _LogOnPageState extends State<LogOnPage> {
             onPressed: () => navegation(
                 context,
                 ViewPage(
-                    title: 'FACEBOOK amasventas'.toString(), url: instagram)),
+                    title: 'INSTAGRAM AMASZONAS'.toString(), url: instagram)),
             child: Icon(
               FontAwesomeIcons.instagram,
               color: Colors.white,
@@ -310,18 +430,18 @@ class _LogOnPageState extends State<LogOnPage> {
         ),
         sizedBox(10, 0),
         SizedBox(
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           child: RaisedButton(
-            color: Colors.green,
+            color: Colors.lightBlueAccent,
             padding: EdgeInsets.all(0),
             shape: CircleBorder(),
-            onPressed: () {
-              callWhatsAppText(whatsApp,
-                  '* amasventas:* \n Mensaje. Me gustaría ponerme en contacto. Gracias. \nEnviado desde la aplicación \n*amasventas Digital*.');
-            },
+            onPressed: () => navegation(
+                context,
+                ViewPage(
+                    title: 'TWITTER AMASZONAS'.toString(), url: instagram)),
             child: Icon(
-              FontAwesomeIcons.whatsapp,
+              FontAwesomeIcons.twitter,
               color: Colors.white,
               size: 20,
             ),
@@ -329,20 +449,16 @@ class _LogOnPageState extends State<LogOnPage> {
         ),
         sizedBox(10, 0),
         SizedBox(
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           child: RaisedButton(
-            color: Colors.grey,
+            color: Colors.blue,
             padding: EdgeInsets.all(0),
             shape: CircleBorder(),
-            onPressed: () {
-              sendEmailAdvanced(
-                  email,
-                  "Comunidad amasventas. Deseo comunicarme con usted.",
-                  "A la Comunidad amasventas:\n Deseo más información sobre la Comunidad y de como formar parte de FIFA BOLIVIA.\n Saludos cordiales. Gracias");
-            },
+            onPressed: () => navegation(context,
+                ViewPage(title: 'LINKDIN AMASZONAS'.toString(), url: linkDin)),
             child: Icon(
-              FontAwesomeIcons.solidEnvelope,
+              FontAwesomeIcons.linkedinIn,
               color: Colors.white,
               size: 20,
             ),
@@ -351,116 +467,4 @@ class _LogOnPageState extends State<LogOnPage> {
       ],
     );
   }
-
-  _egree(BuildContext context) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          FlatButton(
-            child: Text('Política de Privacidad'),
-            onPressed: () => Navigator.push(
-              context,
-              PageTransition(
-                curve: Curves.bounceOut,
-                type: PageTransitionType.rotate,
-                alignment: Alignment.topCenter,
-                child: ViewPage(
-                    title: 'Políticas de Privacidad',
-                    url: 'https://www.amasventas.bo/politicas-de-privacidad'),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _button(
-      BuildContext context, String text, double fontSize, double edgeInsets) {
-    return GFButton(
-      padding: EdgeInsets.symmetric(horizontal: edgeInsets),
-      text: text,
-      textStyle: TextStyle(fontSize: fontSize),
-      textColor: AppTheme.themeWhite,
-      color: AppTheme.themeBlackBlack,
-      icon: avatarCircle(IMAGE_DEFAULT, 20),
-      // Shimmer.fromColors(
-      //   baseColor: AppTheme.themePurple,
-      //   highlightColor: AppTheme.themeWhite,
-      //   child: avatarCircle(IMAGE_LOGOB, 35),
-      // ),
-      shape: GFButtonShape.pills,
-      onPressed: () => navegation(context, IntroPage()),
-    );
-  }
-
-  // Widget _botonInvitado(String text) {
-  //   return Container(
-  //     padding: EdgeInsets.symmetric(horizontal: 70.0),
-  //     width: MediaQuery.of(context).size.width,
-  //     child: RaisedButton.icon(
-  //       shape:
-  //           RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-  //       color: AppTheme.themeDefault,
-  //       textColor: Colors.white,
-  //       label: Text(
-  //         text,
-  //         style: kSubtitleStyle,
-  //       ),
-  //       icon: FaIcon(FontAwesomeIcons.earlybirds, color: Colors.white),
-  //       onPressed: () {
-  //         // prefs.imei = entity.imei;
-  //         // prefs.nombreUsuario = 'Invitado';
-  //         // prefs.correoElectronico = 'Invitado';
-  //         // prefs.nombreInstitucion = 'Invitado';
-  //         // prefs.idInsitucion = '0';
-  //         // prefs.idPersonal = '-2';
-  //         // prefs.userId = '0';
-
-  //         // Navigator.push(
-  //         //     context,
-  //         //     PageTransition(
-  //         //       curve: Curves.bounceOut,
-  //         //       type: PageTransitionType.rotate,
-  //         //       alignment: Alignment.topCenter,
-  //         //       child: LoginPage(),
-  //         //     ));
-  //       },
-  //     ),
-  //   );
-  // }
-
-  _submit() async {
-    navegation(context, IntroPage());
-    loadingEntity();
-    //  executeCUD(loginService, entity);
-  }
-
-  void loadingEntity() {
-    // entity.states = StateEntity.Insert;
-    // entity.foto = prefs.avatarImage;
-    // entity.nombre = prefs.nameUser;
-    // entity.correo = prefs.email;
-    // entity.imei = _platformImei;
-    // entity.token = prefs.token;
-  }
-
-  // void executeCUD(LoginService entityService, model.LoginModel entity) async {
-  //   try {
-  //     await entityService.repository(entity).then((result) {
-  //       print('EL RESULTTTTT: ${result["tipo_mensaje"]}');
-  //       if (result["tipo_mensaje"] == '0') {
-  //         //  showSnackbar(STATUS_OK, scaffoldKey);
-  //         prefs.idLogin = result["data"]["idLogin"].toString();
-  //         navegation(context, HomePage());
-  //       } else
-  //         showSnackbar(STATUS_ERROR, scaffoldKey);
-  //     });
-  //   } catch (error) {
-  //     showSnackbar(STATUS_ERROR + ' ${error.toString()} ', scaffoldKey);
-  //   }
-  // }
 }
